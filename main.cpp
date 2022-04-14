@@ -15,10 +15,7 @@ int main()
     int games = 0;
     int stayWins = 0;
     int switchWins = 0;
-    int chosenDoor;
-    int remainingDoor;
     int winningDoor;
-    int option;
     
     void allDoors();
     void door1();
@@ -27,7 +24,6 @@ int main()
 
     //chooses random number that's either 1, 2, or 3
     srand (time(NULL));
-    chosenDoor = rand() % 3 + 1;
     winningDoor = rand() % 3 + 1;
     
     allDoors();
