@@ -1,5 +1,5 @@
 //
-//  main.cpp
+//  server.cpp
 //  MontyHall
 //
 //  Created by Christine Helenick on 4/13/22.
@@ -8,43 +8,96 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 using namespace std;
+    
+void allDoors();
+void door1();
+void door2();
+void door3();
+
+#define QUEUE_LENGTH 10
+#define BUFFER_SIZE 2048
+#define PORT "8888"
 
 int main()
 {
-    int games = 0;
-    int stayWins = 0;
-    int switchWins = 0;
-    int winningDoor;
-    
-    void allDoors();
-    void door1();
-    void door2();
-    void door3();
+    /* START: setting up server */
 
-    //chooses random number that's either 1, 2, or 3
-    srand (time(NULL));
-    winningDoor = rand() % 3 + 1;
-    
-    allDoors();
-    cout << "Select a door \n";
-    
-    // makes user select 1 of the 3 doors
-    int selection;
-    cin >> selection;
+    struct sockaddr_in sin; 
+    char buf[BUFFER_SIZE]; 
+    int buf_len; 
+    socklen_t addr_len; 
+    int s, new_s;
+    int yes = 1;
 
-    // TODO add if else statements to compare their selection and then
-    // call the corresponding door method that displays the corresponding ASCII art
+    /* build address data structure */ 
+    bzero((char *)&sin, sizeof(sin)); 
+    sin.sin_family = AF_INET; 
+    sin.sin_addr.s_addr = INADDR_ANY; 
+    sin.sin_port = htons(atoi(PORT)); 
+ 
+    /* setup passive open */ 
+    if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) { 
+        perror("server: socket"); 
+        exit(1); 
+    } 
+    /* force resuse of socket and port */
+    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+        perror("server: setsockopt");
+        return 1;
+    }
+    if ((bind(s, (struct sockaddr *)&sin, sizeof(sin))) < 0) { 
+        perror("server: bind"); 
+        exit(1); 
+    } 
+    listen(s, QUEUE_LENGTH);
 
-    // TODO a do while isn't necessary but we need the logic for 3 rounds of the game to be
-    // executed with different random winning doors each round
-    do
-    {
+    /* END: setting up server */
+    
+    while(1) {
+        if ((new_s = accept(s, (struct sockaddr *)&sin, &addr_len)) < 0) { 
+            perror("server: accept");
+            exit(1);
+        }
+
+        /* START: game code */
+
+        int games = 0;
+        int stayWins = 0;
+        int switchWins = 0;
+        int winningDoor;
+
+        //chooses random number that's either 1, 2, or 3
+        srand (time(NULL));
+        winningDoor = rand() % 3 + 1;
         
-    } while (games < 3);
+        allDoors();
+        cout << "Select a door \n";
+        
+        // makes user select 1 of the 3 doors
+        int selection;
+        cin >> selection;
 
-    cout << "\n Out of 3, the contestant won " << stayWins << " times by staying with his/her original choice and won " << switchWins << " times by switching his/her choice.\n";
-    
+        // TODO add if else statements to compare their selection and then
+        // call the corresponding door method that displays the corresponding ASCII art
+
+        // TODO a do while isn't necessary but we need the logic for 3 rounds of the game to be
+        // executed with different random winning doors each round
+        do
+        {
+            
+        } while (games < 3);
+
+        cout << "\n Out of 3, the contestant won " << stayWins << " times by staying with his/her original choice and won " << switchWins << " times by switching his/her choice.\n";
+        
+        /* END: game code */
+        
+        close(new_s); 
+    }
+    close(s);
     return 0;
 }
 
