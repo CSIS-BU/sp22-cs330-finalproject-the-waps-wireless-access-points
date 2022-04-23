@@ -59,17 +59,14 @@ int main()
     while(1) {
         if ((new_s = accept(s, (struct sockaddr *)&sin, &addr_len)) < 0) { 
             perror("server: accept");
-            exit(1)
+            exit(1);
         }
 
         /* START: game code */
         
         //variables
         int rounds = 0;
-        int stayWins = 0;
-        int switchWins = 0;
         int winningDoor;
-        int unopenedDoor;
 
         //start of the actual game
         while(rounds < 3)
@@ -78,8 +75,27 @@ int main()
             srand (time(NULL));
             winningDoor = rand() % 3 + 1;
 
+            // send goat door to client
+            /*
+            memset(buf, 0, sizeof(buf));
+            strcpy(buf, [the number of the goat door]);
+            if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
+                perror("server: send"); 
+            }
+            */
+
+            // send winning door to client
+            /*
+            memset(buf, 0, sizeof(buf));
+            strcpy(buf, [the number of the winning door]);
+            if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
+                perror("server: send"); 
+            }
+            */
+
             rounds++;
-        } //end of rounds
+        }
+        //end of rounds
 
         /* END: game code */
         
