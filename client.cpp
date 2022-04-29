@@ -27,8 +27,8 @@ void door3();
 
 int main()
 {
-    int winningDoor;
-    int unopenedDoor;
+
+    /* START: setting up server */
 
     FILE *fp; 
     struct hostent *hp; 
@@ -61,71 +61,124 @@ int main()
         exit(1); 
     }
 
+    /* END: setting up server */
+
+    /* START: game code */
     
     int doorDecision;
+    int selection;
+    int winningDoor;
+    int unopenedDoor;
+    int stayWins = 0;
+    int switchWins = 0;
 
     //game show intro
     cout << "Welcome to the WAP show! The way the game works is pretty simple, so don't fret."
-            << "You'll be presented three doors, two of which will contain goats and one will contain a"
-            << "brand new car! Pick any door you feel that the car is behind. We will then reveal the door that has the goat."
-            << "You'll then be asked if you would like to choose the unreaveled door or keep the door you originally"
-            << "picked. Once you lock in your answer, we will then reveal what's behind the two doors. You'll either get"
-            << "a goat or a new car. Feeling lucky? Will you end up choosing the right door? Alright, let's play!"
+            << " You'll be presented three doors, two of which will contain goats and one will contain a"
+            << " brand new car! Pick any door you feel that the car is behind. We will then reveal a door that has the goat."
+            << " You'll then be asked if you would like to choose the unreaveled door or keep the door you originally"
+            << " picked. Once you lock in your answer, we will reveal what's behind the two doors. You'll either get"
+            << " a goat or a new car. Feeling lucky? Will you end up choosing the right door? Alright, let's play!"
             << endl << endl;
+
+    cout << "Press Enter to Continue";
+    cin.ignore();
     
     // game loop
-    for (int i = 0; i < 3; i++)
+    for (int round = 0; round < 3; round++)
     {
-         cout << "Select a door \n";
-
-        // makes user select 1 of the 3 doors
-        int selection;
-        cin >> selection;
-
-        cout << "You've chosen door " << selection << ". Let's see what's behind one of the other doors!" << endl;
-
-
         allDoors();
 
-        //loops user input for corresponding doors
-        while(1)
+        cout << "You're presented with three closed doors. Which one do you think has the car behind it?" << endl;
+
+        // loop to verify input
+        while (1)
         {
-            if(selection == 1)
+            cout << "Enter your guess ('1', '2', or '3'): ";
+            // makes user select 1 of the 3 doors
+            cin >> selection;
+            if (selection >= 1 && selection <= 3)
             {
-                door1();
+                cout << "You've chosen door " << selection << ". Let's see what's behind one of the other doors!" << endl << endl;
                 break;
             }
-            else if(selection == 2)
+            else 
             {
-                door2();
-                break;
-            }
-            else if(selection == 3)
-            {
-                door3();
-                break;
-            }
-            else
-            {
-                allDoors();
-                cout << "Please select door 1, 2, or 3." << endl;
+                cout << "You said something other than '1', '2', or '3'! Let's try that again." << endl;
             }
         }
+
+        //function for if else statements go HERE
+
+        //WD = 1 if else statements 
+        if(winningDoor == 1 && selection == 2)
+        {
+            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            unopenedDoor = 3;
+        }
+        else if(winningDoor == 1 && selection == 3)
+        {
+            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            unopenedDoor = 2;
+        }
+
+        //WD = 2 if else statements
+        else if(winningDoor == 2 && selection == 1)
+        {
+            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            
+        }
+        else if(winningDoor == 2 && selection == 3)
+        {
+            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+        }
+
+        //WD = 3 if else statements
+        else if(winningDoor == 3 && selection ==1)
+        {
+            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+        }
+        else if(winningDoor == 3 && selection == 2)
+        {
+            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+        }
+
+        //WD= selection if statement
+        else if(winningDoor == selection) //defaults goat door to door 2
+        {
+            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            unopenedDoor = 3;
+        }
+
+        //LOGIC: since we've already eliminated a door, the other door has to be the winning door since it's
+            //       not = to the user's selection
+            if(winningDoor != selection)
+            {
+                unopenedDoor = winningDoor;
+                
+            }
 
         // send the choice to the server
 
         // get door with goat from server
 
-        cout << R"(Now that we have revealed the door with the goat behind it, you have a tough decision to make.
-                     There's a 50/50 chance you could get the door with the car behind it. But the question is...
-                     would you like to keep the door you've chosen or test your luck with the unopened door?)" << endl
-                     << endl << "(Type '1' to keep your chosen door)" << endl << "(Type '2' to choose the unopened door): " << endl;
+        cout << "Now that we have revealed the door with the goat behind it, you have a tough decision to make."
+                    << "There's a 50/50 chance you could get the door with the car behind it. But the question is..."
+                    << "would you like to keep the door you've chosen or test your luck with the unopened door?" << endl
+                    << endl << "(Type '1' to keep your chosen door)" << endl << "(Type '2' to choose the unopened door): " << endl;
 
         //loops for correct user input for switch/keep door
         while(1)
         {
             cin >> doorDecision; //keep or switch doors
-            if (doorDecision != 1 || doorDecision != 2)
+            if (doorDecision != 1 && doorDecision != 2)
             {
                 cout << "Are you really cut out to be a WAP star? You need to select 1 (stay with your chosen door) or 2 (change your decision): ";
             }
@@ -148,156 +201,114 @@ int main()
                 switchWins++;
             }
         }
+    }
+ /* END: game code */
 
-        //door 1 selection if statements 
-        if(winningDoor == 2 && selection == 1)
-        {
-            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            
-        }
-        else if(winningDoor == 3 && selection ==1)
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-
-        //door 2 selection if satements
-        else if(winningDoor == 1 && selection == 2)
-        {
-            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            
-        }
-        else if(winningDoor == 3 && selection == 2)
-        {
-            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-
-        //door 3 selection if statements
-        else if(winningDoor == 1 && selection == 3)
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-        else if(winningDoor == 2 && selection == 3)
-        {
-            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-        else if(winningDoor == selection) //defaults goat door to door 2
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            unopenedDoor = 3;
-        }
-
-        //LOGIC: since we've already eliminated a door, the other door has to be the winning door since it's
-            //       not = to the user's selection
-            if(winningDoor != selection)
-            {
-                unopenedDoor = winningDoor;
-            }
-
-            cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by staying with their original choice and won "
+cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by staying with their original choice and won "
                 << switchWins << " times by switching their choice." << endl 
                 << endl << "And that will conclude our WAP show! Do you think you could be our next WAP star? "
                 << "Test your luck by calling 999-999-9999! " << "See you next time!";
-    }
-
-   
  
-
     return 0;
 }
 
-
+int otherDoor(int door1, int door2)
+{
+    int doors[3] = {1, 2, 3};
+    for (int door in doors)
+    {
+        if (door1 != door && door2 != door)
+        {
+            return door;
+        }
+    }
+    return 1;
+}
 
 void allDoors(){
     
     cout << R"(
-             _______________    _______________    _______________
-            |\ ___________ /|  |\ ___________ /|  |\ ___________ /|
-            | |  _ _ _ _  | |  | |  _ _ _ _  | |  | |  _ _ _ _  | |
-            | | | | | | | | |  | | | | | | | | |  | | | | | | | | |
-            | | |-+ 1 +-| | |  | | |-+ 2 +-| | |  | | |-+ 3 +-| | |
-            | | |-+ | +%| | |  | | |-+ | +%| | |  | | |-+ | +%| | |
-            | | |_|_|_|_| | |  | | |_|_|_|_| | |  | | |_|_|_|_| | |
-            | |    ___    | |  | |    ___    | |  | |    ___    | |
-            | |   [___] ()| |  | |   [___] ()| |  | |   [___] ()| |
-            | |         ||| |  | |         ||| |  | |         ||| |
-            | |         ()| |  | |         ()| |  | |         ()| |
-            | |           | |  | |           | |  | |           | |
-            | |           | |  | |           | |  | |           | |
-            | |           | |  | |           | |  | |           | |
-            |_|___________|_|  |_|___________|_|  |_|___________|_|
+ _______________    _______________    _______________
+|\ ___________ /|  |\ ___________ /|  |\ ___________ /|
+| |  _ _ _ _  | |  | |  _ _ _ _  | |  | |  _ _ _ _  | |
+| | | | | | | | |  | | | | | | | | |  | | | | | | | | |
+| | |-+ 1 +-| | |  | | |-+ 2 +-| | |  | | |-+ 3 +-| | |
+| | |-+ | +%| | |  | | |-+ | +%| | |  | | |-+ | +%| | |
+| | |_|_|_|_| | |  | | |_|_|_|_| | |  | | |_|_|_|_| | |
+| |    ___    | |  | |    ___    | |  | |    ___    | |
+| |   [___] ()| |  | |   [___] ()| |  | |   [___] ()| |
+| |         ||| |  | |         ||| |  | |         ||| |
+| |         ()| |  | |         ()| |  | |         ()| |
+| |           | |  | |           | |  | |           | |
+| |           | |  | |           | |  | |           | |
+| |           | |  | |           | |  | |           | |
+|_|___________|_|  |_|___________|_|  |_|___________|_|
 
-            )";
+)";
 }
 
 void door1(){
     
     cout << R"(
-             _______________    _______________    _______________
-            |\ ___________ /|  |\ ___________ /|  |\ ___________ /|
-            | |  /|,| |   | |  | |  _ _ _ _  | |  | |  _ _ _ _  | |
-            | | | 1 | |   | |  | | | | | | | | |  | | | | | | | | |
-            | | |,x,' |   | |  | | |-+ 2 +-| | |  | | |-+ 3 +-| | |
-            | | |,x   ,   | |  | | |-+ | +%| | |  | | |-+ | +%| | |
-            | | |/    |   | |  | | |_|_|_|_| | |  | | |_|_|_|_| | |
-            | |    /] ,   | |  | |    ___    | |  | |    ___    | |
-            | |   [/ ()   | |  | |   [___] ()| |  | |   [___] ()| |
-            | |       |   | |  | |         ||| |  | |         ||| |
-            | |       |   | |  | |         ()| |  | |         ()| |
-            | |       |   | |  | |           | |  | |           | |
-            | |      ,'   | |  | |           | |  | |           | |
-            | |   ,'      | |  | |           | |  | |           | |
-            |_|,'_________|_|  |_|___________|_|  |_|___________|_|
-            
-            )";
+ _______________    _______________    _______________
+|\ ___________ /|  |\ ___________ /|  |\ ___________ /|
+| |  /|,| |   | |  | |  _ _ _ _  | |  | |  _ _ _ _  | |
+| | | 1 | |   | |  | | | | | | | | |  | | | | | | | | |
+| | |,x,' |   | |  | | |-+ 2 +-| | |  | | |-+ 3 +-| | |
+| | |,x   ,   | |  | | |-+ | +%| | |  | | |-+ | +%| | |
+| | |/    |   | |  | | |_|_|_|_| | |  | | |_|_|_|_| | |
+| |    /] ,   | |  | |    ___    | |  | |    ___    | |
+| |   [/ ()   | |  | |   [___] ()| |  | |   [___] ()| |
+| |       |   | |  | |         ||| |  | |         ||| |
+| |       |   | |  | |         ()| |  | |         ()| |
+| |       |   | |  | |           | |  | |           | |
+| |      ,'   | |  | |           | |  | |           | |
+| |   ,'      | |  | |           | |  | |           | |
+|_|,'_________|_|  |_|___________|_|  |_|___________|_|
+
+)";
 }
 
 void door2(){
     
     cout << R"(
-             _______________    _______________    _______________
-            |\ ___________ /|  |\ ___________ /|  |\ ___________ /|
-            | |  _ _ _ _  | |  | |  /|,| |   | |  | |  _ _ _ _  | |
-            | | | | | | | | |  | | | 2 | |   | |  | | | | | | | | |
-            | | |-+ 1 +-| | |  | | |,x,' |   | |  | | |-+ 3 +-| | |
-            | | |-+ | +%| | |  | | |,x   ,   | |  | | |-+ | +%| | |
-            | | |_|_|_|_| | |  | | |/    |   | |  | | |_|_|_|_| | |
-            | |    ___    | |  | |    /] ,   | |  | |    ___    | |
-            | |   [___] ()| |  | |   [/ ()   | |  | |   [___] ()| |
-            | |         ||| |  | |       |   | |  | |         ||| |
-            | |         ()| |  | |       |   | |  | |         ()| |
-            | |           | |  | |       |   | |  | |           | |
-            | |           | |  | |      ,'   | |  | |           | |
-            | |           | |  | |   ,'      | |  | |           | |
-            |_|___________|_|  |_|,'_________|_|  |_|___________|_|
-            
-            )";
+ _______________    _______________    _______________
+|\ ___________ /|  |\ ___________ /|  |\ ___________ /|
+| |  _ _ _ _  | |  | |  /|,| |   | |  | |  _ _ _ _  | |
+| | | | | | | | |  | | | 2 | |   | |  | | | | | | | | |
+| | |-+ 1 +-| | |  | | |,x,' |   | |  | | |-+ 3 +-| | |
+| | |-+ | +%| | |  | | |,x   ,   | |  | | |-+ | +%| | |
+| | |_|_|_|_| | |  | | |/    |   | |  | | |_|_|_|_| | |
+| |    ___    | |  | |    /] ,   | |  | |    ___    | |
+| |   [___] ()| |  | |   [/ ()   | |  | |   [___] ()| |
+| |         ||| |  | |       |   | |  | |         ||| |
+| |         ()| |  | |       |   | |  | |         ()| |
+| |           | |  | |       |   | |  | |           | |
+| |           | |  | |      ,'   | |  | |           | |
+| |           | |  | |   ,'      | |  | |           | |
+|_|___________|_|  |_|,'_________|_|  |_|___________|_|
+
+)";
 }
 
 void door3(){
     
     cout << R"(
-             _______________    _______________    _______________
-            |\ ___________ /|  |\ ___________ /|  |\ ___________ /|
-            | |  _ _ _ _  | |  | |  _ _ _ _  | |  | |  /|,| |   | |
-            | | | | | | | | |  | | | | | | | | |  | | | 3 | |   | |
-            | | |-+ 1 +-| | |  | | |-+ 2 +-| | |  | | |,x,' |   | |
-            | | |-+ | +%| | |  | | |-+ | +%| | |  | | |,x   ,   | |
-            | | |_|_|_|_| | |  | | |/    |   | |  | | |_|_|_|_| | |
-            | |    ___    | |  | |    ___    | |  | |    /] ,   | |
-            | |   [___] ()| |  | |   [___] ()| |  | |   [/ ()   | |
-            | |         ||| |  | |         ||| |  | |       |   | |
-            | |         ()| |  | |         ()| |  | |       |   | |
-            | |           | |  | |           | |  | |       |   | |
-            | |           | |  | |           | |  | |      ,'   | |
-            | |           | |  | |           | |  | |   ,'      | |
-            |_|___________|_|  |_|___________|_|  |_|,'_________|_|
-            
-            )";
+ _______________    _______________    _______________
+|\ ___________ /|  |\ ___________ /|  |\ ___________ /|
+| |  _ _ _ _  | |  | |  _ _ _ _  | |  | |  /|,| |   | |
+| | | | | | | | |  | | | | | | | | |  | | | 3 | |   | |
+| | |-+ 1 +-| | |  | | |-+ 2 +-| | |  | | |,x,' |   | |
+| | |-+ | +%| | |  | | |-+ | +%| | |  | | |,x   ,   | |
+| | |_|_|_|_| | |  | | |/    |   | |  | | |_|_|_|_| | |
+| |    ___    | |  | |    ___    | |  | |    /] ,   | |
+| |   [___] ()| |  | |   [___] ()| |  | |   [/ ()   | |
+| |         ||| |  | |         ||| |  | |       |   | |
+| |         ()| |  | |         ()| |  | |       |   | |
+| |           | |  | |           | |  | |       |   | |
+| |           | |  | |           | |  | |      ,'   | |
+| |           | |  | |           | |  | |   ,'      | |
+|_|___________|_|  |_|___________|_|  |_|,'_________|_|
+
+)";
 }
