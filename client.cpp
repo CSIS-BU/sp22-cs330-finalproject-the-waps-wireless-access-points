@@ -108,6 +108,63 @@ int main()
             }
         }
 
+        //function for if else statements go HERE
+
+        //WD = 1 if else statements 
+        if(winningDoor == 1 && selection == 2)
+        {
+            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            unopenedDoor = 3;
+        }
+        else if(winningDoor == 1 && selection == 3)
+        {
+            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            unopenedDoor = 2;
+        }
+
+        //WD = 2 if else statements
+        else if(winningDoor == 2 && selection == 1)
+        {
+            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            
+        }
+        else if(winningDoor == 2 && selection == 3)
+        {
+            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+        }
+
+        //WD = 3 if else statements
+        else if(winningDoor == 3 && selection ==1)
+        {
+            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+        }
+        else if(winningDoor == 3 && selection == 2)
+        {
+            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+        }
+
+        //WD= selection if statement
+        else if(winningDoor == selection) //defaults goat door to door 2
+        {
+            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
+                    pick that one, am I right?)" << endl;
+            unopenedDoor = 3;
+        }
+
+        //LOGIC: since we've already eliminated a door, the other door has to be the winning door since it's
+            //       not = to the user's selection
+            if(winningDoor != selection)
+            {
+                unopenedDoor = winningDoor;
+                
+            }
+
         // send the choice to the server
 
         // get door with goat from server
@@ -144,73 +201,20 @@ int main()
                 switchWins++;
             }
         }
+    }
+ /* END: game code */
 
-        //door 1 selection if statements 
-        if(winningDoor == 2 && selection == 1)
-        {
-            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            
-        }
-        else if(winningDoor == 3 && selection ==1)
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-
-        //door 2 selection if satements
-        else if(winningDoor == 1 && selection == 2)
-        {
-            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            
-        }
-        else if(winningDoor == 3 && selection == 2)
-        {
-            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-
-        //door 3 selection if statements
-        else if(winningDoor == 1 && selection == 3)
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-        else if(winningDoor == 2 && selection == 3)
-        {
-            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-        else if(winningDoor == selection) //defaults goat door to door 2
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            unopenedDoor = 3;
-        }
-
-        //LOGIC: since we've already eliminated a door, the other door has to be the winning door since it's
-            //       not = to the user's selection
-            if(winningDoor != selection)
-            {
-                unopenedDoor = winningDoor;
-            }
-
-            cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by staying with their original choice and won "
+cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by staying with their original choice and won "
                 << switchWins << " times by switching their choice." << endl 
                 << endl << "And that will conclude our WAP show! Do you think you could be our next WAP star? "
                 << "Test your luck by calling 999-999-9999! " << "See you next time!";
-    }
-
-    /* END: game code */
  
-
     return 0;
 }
 
 int otherDoor(int door1, int door2)
 {
-    int[] doors = [1, 2, 3];
+    int doors[3] = {1, 2, 3};
     for (int door in doors)
     {
         if (door1 != door && door2 != door)
