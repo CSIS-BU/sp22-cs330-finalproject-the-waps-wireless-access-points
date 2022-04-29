@@ -14,12 +14,15 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <vector>
 
 using namespace std;
 
 #define QUEUE_LENGTH 10
 #define BUFFER_SIZE 2048
 #define PORT "8888"
+
+int otherDoor(int, int);
 
 int main()
 {
@@ -67,6 +70,9 @@ int main()
         //variables
         int rounds = 0;
         int winningDoor;
+        int goatDoor;
+        int guess;
+        int result;
 
         //start of the actual game
         while(rounds < 3)
@@ -75,23 +81,33 @@ int main()
             srand (time(NULL));
             winningDoor = rand() % 3 + 1;
 
-            // send goat door to client
-            /*
-            memset(buf, 0, sizeof(buf));
-            strcpy(buf, [the number of the goat door]);
-            if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
-                perror("server: send"); 
-            }
-            */
+            // get initial guess from client
+            buf_len = recv(new_s, buf, sizeof(buf), 0);
+            buf[buf_len] = '\0';
+            guess = atoi(buf);
 
-            // send winning door to client
-            /*
+            goatDoor = otherDoor(winningDoor, guess);
+
+            // send goat door to client
             memset(buf, 0, sizeof(buf));
-            strcpy(buf, [the number of the winning door]);
+            buf[0] = '0' + goatDoor;
             if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
                 perror("server: send"); 
             }
-            */
+
+            // get final guess from client
+            buf_len = recv(new_s, buf, sizeof(buf), 0);
+            buf[buf_len] = '\0';
+            guess = atoi(buf);
+
+            result = guess == winningDoor;
+
+            // send win or fail (1 or 2)
+            memset(buf, 0, sizeof(buf));
+            buf[0] = '0' + result;
+            if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
+                perror("server: send"); 
+            }
 
             rounds++;
         }
@@ -103,5 +119,24 @@ int main()
     }
     close(s);
     return 0;
+}
+
+int otherDoor(int door1, int door2)
+{
+    int doors[3] = {1, 2, 3};
+    if (door1 == door2)
+    {
+        doors[2] = doors[door1-1];
+        doors[door1-1] = 3;
+        return doors[rand() % 2];
+    }
+    for (int otherDoor : doors)
+    {
+        if (door1 != otherDoor && door2 != otherDoor)
+        {
+            return otherDoor;
+        }
+    }
+    return 1;
 }
 

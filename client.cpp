@@ -15,8 +15,11 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <stdio.h>
+
 using namespace std;
-    
+
+int otherDoor(int, int);
 void allDoors();
 void door1();
 void door2();
@@ -27,13 +30,13 @@ void door3();
 
 int main()
 {
-
     /* START: setting up server */
 
     FILE *fp; 
     struct hostent *hp; 
     struct sockaddr_in sin;
     char buf[BUFFER_SIZE]; 
+    int buf_len; 
     int s;
  
     /* translate host name into peer's IP address */ 
@@ -71,6 +74,8 @@ int main()
     int unopenedDoor;
     int stayWins = 0;
     int switchWins = 0;
+    int goatDoor;
+    int win;
 
     //game show intro
     cout << "Welcome to the WAP show! The way the game works is pretty simple, so don't fret."
@@ -85,7 +90,7 @@ int main()
     cin.ignore();
     
     // game loop
-    for (int round = 0; round < 3; round++)
+    for (int round = 1; round < 3; round++)
     {
         allDoors();
 
@@ -108,66 +113,20 @@ int main()
             }
         }
 
-        //function for if else statements go HERE
-
-        //WD = 1 if else statements 
-        if(winningDoor == 1 && selection == 2)
-        {
-            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            unopenedDoor = 3;
-        }
-        else if(winningDoor == 1 && selection == 3)
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            unopenedDoor = 2;
-        }
-
-        //WD = 2 if else statements
-        else if(winningDoor == 2 && selection == 1)
-        {
-            cout << R"(Well would you look at that. Door 3 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            
-        }
-        else if(winningDoor == 2 && selection == 3)
-        {
-            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-
-        //WD = 3 if else statements
-        else if(winningDoor == 3 && selection ==1)
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-        else if(winningDoor == 3 && selection == 2)
-        {
-            cout << R"(Well would you look at that. Door 1 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-        }
-
-        //WD= selection if statement
-        else if(winningDoor == selection) //defaults goat door to door 2
-        {
-            cout << R"(Well would you look at that. Door 2 had a goat behind it. You're lucky you didn't 
-                    pick that one, am I right?)" << endl;
-            unopenedDoor = 3;
-        }
-
-        //LOGIC: since we've already eliminated a door, the other door has to be the winning door since it's
-            //       not = to the user's selection
-            if(winningDoor != selection)
-            {
-                unopenedDoor = winningDoor;
-                
-            }
-
         // send the choice to the server
+        memset(buf, 0, sizeof(buf));
+        buf[0] = '0' + selection;
+        if(send(s, buf, sizeof(buf), 0) < 0) { 
+            perror("client: send"); 
+        }
 
         // get door with goat from server
+        memset(buf, 0, sizeof(buf));
+        buf_len = recv(s, buf, sizeof(buf), 0);
+        buf[buf_len] = '\0';
+        goatDoor = atoi(buf);
+
+        cout << "Goat door: " << goatDoor << endl;
 
         cout << "Now that we have revealed the door with the goat behind it, you have a tough decision to make."
                     << "There's a 50/50 chance you could get the door with the car behind it. But the question is..."
@@ -188,20 +147,43 @@ int main()
             }
         }
 
-        if(doorDecision == 1 && winningDoor == selection) //user keeps original door
+        // swap guess
+        if (doorDecision == 2)
         {
-            stayWins++;
+            selection = otherDoor(selection, goatDoor);
         }
-        else if(doorDecision == 2 && winningDoor == selection) //user switches to unopened door
-        {
-            selection = unopenedDoor;
 
-            if(selection == winningDoor)
+        // send the choice to the server
+        memset(buf, 0, sizeof(buf));
+        buf[0] = '0' + selection;
+        if(send(s, buf, sizeof(buf), 0) < 0) { 
+            perror("client: send"); 
+        }
+
+        // get win or lose
+        memset(buf, 0, sizeof(buf));
+        buf_len = recv(s, buf, sizeof(buf), 0);
+        buf[buf_len] = '\0';
+        win = atoi(buf);
+
+        if (win)
+        {
+            if (doorDecision == 2)
             {
                 switchWins++;
             }
+            else
+            {
+                stayWins++;
+            }
+            cout << "Congratulations WAPstar, you won round " << round << "! Let's move on to our next round." << endl;
+        }
+        else
+        {
+            cout << "Oof! You didn't win round " << round << "But there's always the next round!" << endl;
         }
     }
+
  /* END: game code */
 
 cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by staying with their original choice and won "
@@ -215,11 +197,17 @@ cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by
 int otherDoor(int door1, int door2)
 {
     int doors[3] = {1, 2, 3};
-    for (int door in doors)
+    if (door1 == door2)
     {
-        if (door1 != door && door2 != door)
+        doors[2] = doors[door1-1];
+        doors[door1-1] = 3;
+        return doors[rand() % 2];
+    }
+    for (int otherDoor : doors)
+    {
+        if (door1 != otherDoor && door2 != otherDoor)
         {
-            return door;
+            return otherDoor;
         }
     }
     return 1;
