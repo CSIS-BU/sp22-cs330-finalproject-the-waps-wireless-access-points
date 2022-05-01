@@ -19,6 +19,7 @@
 
 using namespace std;
 
+void showDoor(int);
 int otherDoor(int, int);
 void allDoors();
 void door1();
@@ -28,8 +29,12 @@ void door3();
 #define BUFFER_SIZE 2048
 #define PORT "8888"
 
-int main()
+int main(int argc, char **argv)
 {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s [port]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
     /* START: setting up server */
 
     FILE *fp; 
@@ -38,6 +43,7 @@ int main()
     char buf[BUFFER_SIZE]; 
     int buf_len; 
     int s;
+    char* port = argv[1];
  
     /* translate host name into peer's IP address */ 
     hp = gethostbyname("localhost"); 
@@ -50,7 +56,7 @@ int main()
     bzero((char *)&sin, sizeof(sin)); 
     sin.sin_family = AF_INET; 
     bcopy(hp->h_addr, (char *)&sin.sin_addr, hp->h_length); 
-    sin.sin_port = htons(atoi(PORT)); 
+    sin.sin_port = htons(atoi(port)); 
  
     /* active open */ 
     if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) { 
@@ -87,14 +93,14 @@ int main()
             << endl << endl;
 
     cout << "Press Enter to Continue";
-    cin.ignore();
+    cin.get();
     
     // game loop
-    for (int round = 1; round < 3; round++)
+    for (int round = 1; round < 4; round++)
     {
         allDoors();
 
-        cout << "You're presented with three closed doors. Which one do you think has the car behind it?" << endl;
+        cout << "You're presented with three closed doors. Which one do you think has the car behind it?" << endl << endl;
 
         // loop to verify input
         while (1)
@@ -104,7 +110,6 @@ int main()
             cin >> selection;
             if (selection >= 1 && selection <= 3)
             {
-                cout << "You've chosen door " << selection << ". Let's see what's behind one of the other doors!" << endl << endl;
                 break;
             }
             else 
@@ -126,9 +131,14 @@ int main()
         buf[buf_len] = '\0';
         goatDoor = atoi(buf);
 
-        cout << "Goat door: " << goatDoor << endl;
+        cout << "You've selected door " << selection << ". Are you ready to reveal which door a goat is behind? (Press Enter to Continue)";
+        // cin.ignore();
+        cin.get();
+        cin.ignore();
 
-        cout << "Now that we have revealed the door with the goat behind it, you have a tough decision to make."
+        showDoor(goatDoor);
+
+        cout << endl << "Now that we have revealed the door with a goat behind it, you have a tough decision to make."
                     << "There's a 50/50 chance you could get the door with the car behind it. But the question is..."
                     << "would you like to keep the door you've chosen or test your luck with the unopened door?" << endl
                     << endl << "(Type '1' to keep your chosen door)" << endl << "(Type '2' to choose the unopened door): " << endl;
@@ -166,6 +176,18 @@ int main()
         buf[buf_len] = '\0';
         win = atoi(buf);
 
+        winningDoor = selection;
+        if (!win) {
+            winningDoor = otherDoor(goatDoor, selection);
+        }
+
+        cout << "Okay, so you selected door " << selection << ". Are you ready to reveal which door the car is behind? (Press Enter to Continue)";
+        cin.get();
+        cin.ignore();
+
+        cout << endl << "The car is behind door " << winningDoor << "!" << endl;
+        showDoor(winningDoor);
+
         if (win)
         {
             if (doorDecision == 2)
@@ -176,11 +198,15 @@ int main()
             {
                 stayWins++;
             }
-            cout << "Congratulations WAPstar, you won round " << round << "! Let's move on to our next round." << endl;
+            cout << "Congratulations WAPstar! The car was indeed behind door " << selection << ", and you won round " << round << "! Let's move on to our next round." << endl;
         }
         else
         {
-            cout << "Oof! You didn't win round " << round << "But there's always the next round!" << endl;
+            cout << "Oof! You didn't win round " << round << ". But there's always the next round!" << endl;
+        }
+        if (round < 3) {
+            cout << "Press Enter when you're ready for the next round";
+            cin.get();
         }
     }
 
@@ -189,7 +215,7 @@ int main()
 cout << endl << "Out of 3 rounds, our contestant won " << stayWins << " times by staying with their original choice and won "
                 << switchWins << " times by switching their choice." << endl 
                 << endl << "And that will conclude our WAP show! Do you think you could be our next WAP star? "
-                << "Test your luck by calling 999-999-9999! " << "See you next time!";
+                << "Test your luck by calling 999-999-9999! " << "See you next time!" << endl;
  
     return 0;
 }
@@ -211,6 +237,22 @@ int otherDoor(int door1, int door2)
         }
     }
     return 1;
+}
+
+void showDoor(int door)
+{
+    switch (door)
+    {
+        case 1:
+            door1();
+            break;
+        case 2:
+            door2();
+            break;
+        case 3:
+            door3();
+            break;
+    }
 }
 
 void allDoors(){

@@ -20,12 +20,16 @@ using namespace std;
 
 #define QUEUE_LENGTH 10
 #define BUFFER_SIZE 2048
-#define PORT "8888"
 
 int otherDoor(int, int);
 
-int main()
+int main(int argc, char **argv)
 {
+
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s [port]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
     /* START: setting up server */
 
     struct sockaddr_in sin; 
@@ -34,12 +38,13 @@ int main()
     socklen_t addr_len; 
     int s, new_s;
     int yes = 1;
+    char* port = argv[1];
 
     /* build address data structure */ 
     bzero((char *)&sin, sizeof(sin)); 
     sin.sin_family = AF_INET; 
     sin.sin_addr.s_addr = INADDR_ANY; 
-    sin.sin_port = htons(atoi(PORT)); 
+    sin.sin_port = htons(atoi(port)); 
  
     /* setup passive open */ 
     if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0) { 
@@ -49,7 +54,7 @@ int main()
     /* force resuse of socket and port */
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
         perror("server: setsockopt");
-        return 1;
+        exit(1);
     }
     if ((bind(s, (struct sockaddr *)&sin, sizeof(sin))) < 0) { 
         perror("server: bind"); 
@@ -64,57 +69,62 @@ int main()
             perror("server: accept");
             exit(1);
         }
-
-        /* START: game code */
-        
-        //variables
-        int rounds = 0;
-        int winningDoor;
-        int goatDoor;
-        int guess;
-        int result;
-
-        //start of the actual game
-        while(rounds < 3)
+        try
         {
-            //chooses random number that's either 1, 2, or 3
-            srand (time(NULL));
-            winningDoor = rand() % 3 + 1;
+            /* START: game code */
+            
+            //variables
+            int rounds = 0;
+            int winningDoor;
+            int goatDoor;
+            int guess;
+            int result;
 
-            // get initial guess from client
-            buf_len = recv(new_s, buf, sizeof(buf), 0);
-            buf[buf_len] = '\0';
-            guess = atoi(buf);
+            //start of the actual game
+            while(rounds < 3)
+            {
+                //chooses random number that's either 1, 2, or 3
+                srand (time(NULL));
+                winningDoor = rand() % 3 + 1;
 
-            goatDoor = otherDoor(winningDoor, guess);
+                // get initial guess from client
+                buf_len = recv(new_s, buf, sizeof(buf), 0);
+                buf[buf_len] = '\0';
+                guess = atoi(buf);
 
-            // send goat door to client
-            memset(buf, 0, sizeof(buf));
-            buf[0] = '0' + goatDoor;
-            if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
-                perror("server: send"); 
+                goatDoor = otherDoor(winningDoor, guess);
+
+                // send goat door to client
+                memset(buf, 0, sizeof(buf));
+                buf[0] = '0' + goatDoor;
+                if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
+                    perror("server: send"); 
+                }
+
+                // get final guess from client
+                buf_len = recv(new_s, buf, sizeof(buf), 0);
+                buf[buf_len] = '\0';
+                guess = atoi(buf);
+
+                result = guess == winningDoor;
+
+                // send win or fail (1 or 2)
+                memset(buf, 0, sizeof(buf));
+                buf[0] = '0' + result;
+                if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
+                    perror("server: send"); 
+                }
+
+                rounds++;
             }
+            //end of rounds
 
-            // get final guess from client
-            buf_len = recv(new_s, buf, sizeof(buf), 0);
-            buf[buf_len] = '\0';
-            guess = atoi(buf);
-
-            result = guess == winningDoor;
-
-            // send win or fail (1 or 2)
-            memset(buf, 0, sizeof(buf));
-            buf[0] = '0' + result;
-            if (send(new_s, buf, BUFFER_SIZE, 0) < 0) { 
-                perror("server: send"); 
-            }
-
-            rounds++;
+            /* END: game code */
         }
-        //end of rounds
-
-        /* END: game code */
-        
+        catch (exception e)
+        {
+            cout << "Error occurred with message " << e.what() << endl;
+        }
         close(new_s); 
     }
     close(s);
